@@ -1,0 +1,42 @@
+﻿<ArcGIS defaultAssembly="AttributePanelV2.dll" defaultNamespace="AttributePanelV2" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
+  <AddInInfo id="{219c019a-7c2b-4000-b7f0-e8b7d62c0f85}" version="1.0" desktopVersion="3.6.59527" product="ArcGISPro">
+    <Name>AttributePanelV2</Name>
+    <Description>AttributePanelV2 description</Description>
+    <Image>Images\AddinDesktop32.png</Image>
+    <Author>Cody</Author>
+    <Company>Acme</Company>
+    <Date>8/5/2026 8:31:54 PM</Date>
+    <Subject>Framework</Subject>
+    <!-- Note subject can be one or more of these topics:
+                    Content, Framework, Editing, Geodatabase, Geometry, Geoprocessing, Layouts, Map Authoring, Map Exploration -->
+  </AddInInfo>
+  <modules>
+    <insertModule id="AttributePanelV2_Module" className="Module1" autoLoad="false" caption="Module1">
+      <!-- uncomment to have the control hosted on a separate tab-->
+      <tabs>
+        <!--<tab id="AttributePanelV2_Tab1" caption="New Tab">
+          <group refID="AttributePanelV2_Group1"/>
+        </tab>-->
+      </tabs>
+      <groups>
+        <!-- comment this out if you have no controls on the Addin tab to avoid
+              an empty group-->
+        <group id="AttributePanelV2_Group1" caption="Group 1" appearsOnAddInTab="true">
+          <!-- host controls within groups -->
+          <button refID="AttributePanelV2_Dockpane1_ShowButton" size="large" />
+        </group>
+      </groups>
+      <controls>
+        <!-- add your controls here -->
+        <button id="AttributePanelV2_Dockpane1_ShowButton" caption="Show Dockpane 1" className="Dockpane1_ShowButton" loadOnClick="true" smallImage="GenericButtonPurple16" largeImage="GenericButtonPurple32">
+          <tooltip heading="Show Dockpane">Show Dockpane<disabledText /></tooltip>
+        </button>
+      </controls>
+      <dockPanes>
+        <dockPane id="AttributePanelV2_Dockpane1" caption="Dockpane 1" smallImage="BexDog16" className="Dockpane1ViewModel" dock="group" dockWith="esri_core_projectDockPane">
+          <content className="Dockpane1View" />
+        </dockPane>
+      </dockPanes>
+    </insertModule>
+  </modules>
+</ArcGIS>
