@@ -21,14 +21,35 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
-      <TextBlock Text="{Binding Heading}" Style="{DynamicResource Esri_TextBlockDockPaneHeader}">
-        <TextBlock.ToolTip>
-          <WrapPanel Orientation="Vertical" MaxWidth="300">
-            <TextBlock Text="{Binding Heading}" TextWrapping="Wrap"/>
-          </WrapPanel>
-        </TextBlock.ToolTip>
-      </TextBlock>
-    </DockPanel>
-  </Grid>
+        <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
+        </DockPanel>
+        <Grid>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+
+            <!-- DockPane Header -->
+            <DockPanel Grid.Row="0"
+               LastChildFill="true"
+               KeyboardNavigation.TabNavigation="Local"
+               Height="30">
+            </DockPanel>
+
+
+            <!-- Actual Content -->
+            <StackPanel Grid.Row="1"
+                Margin="10">
+
+                <TextBlock Text="Layer:"/>
+
+                <TextBlock Text="{Binding AttributeText}"
+                   FontWeight="Bold"
+                   Margin="0,0,0,10"/>
+            </StackPanel>
+
+        </Grid>
+    </Grid>
 </UserControl>
