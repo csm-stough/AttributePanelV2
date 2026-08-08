@@ -14,8 +14,10 @@ using ArcGIS.Desktop.KnowledgeGraph;
 using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
-using System;
+using ArcGIS.Desktop.Editing.Attributes;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,30 +29,24 @@ namespace AttributePanelV2
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        private string _attributeText = "No selection";
-
-        public string AttributeText
-        {
-            get => _attributeText;
-            set => SetProperty(ref _attributeText, value);
-        }
+        public ObservableCollection<Attribute> attributes { get; set; }
 
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
+            attributes = new ObservableCollection<Attribute>();
         }
 
-        private void OnSelectionChanged(MapSelectionChangedEventArgs args)
+        private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
-            QueuedTask.Run(async () =>
+            attributes.Clear();
+
+            await QueuedTask.Run(async () =>
             {
                 if (args.Selection.Count == 0)
                 {
-                    AttributeText = "No selection";
                     return;
                 }
-
-                AttributeText = "";
 
                 var selection = args.Selection.ToDictionary();
 
@@ -65,13 +61,12 @@ namespace AttributePanelV2
                 long oid = objectIds.First();
 
                 await _inspector.LoadAsync(featureLayer, oid);
-
-                foreach(var attribute in _inspector)
-                {
-                    AttributeText += $"{attribute.FieldName} : {attribute.CurrentValue}\n";
-                }
-
             });
+
+            foreach (var attribute in _inspector)
+            {
+                attributes.Add(attribute);
+            }
         }
 
         /// <summary>

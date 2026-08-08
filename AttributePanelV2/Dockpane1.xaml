@@ -43,11 +43,16 @@
             <StackPanel Grid.Row="1"
                 Margin="10">
 
-                <TextBlock Text="Layer:"/>
-
-                <TextBlock Text="{Binding AttributeText}"
-                   FontWeight="Bold"
-                   Margin="0,0,0,10"/>
+                <ItemsControl ItemsSource="{Binding attributes}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding FieldName}"></TextBlock>
+                                <TextBlock Text="{Binding CurrentValue}"></TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
 
         </Grid>
