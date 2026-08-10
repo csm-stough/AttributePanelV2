@@ -14,13 +14,13 @@ using ArcGIS.Desktop.KnowledgeGraph;
 using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
-using ArcGIS.Desktop.Editing.Attributes;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using static ArcGIS.Desktop.Internal.Mapping.Controls.FloorFilter.FloorFilterListControlVM;
 
 namespace AttributePanelV2
@@ -66,6 +66,18 @@ namespace AttributePanelV2
             foreach (var attribute in _inspector)
             {
                 attributes.Add(attribute);
+
+                if (attribute.HasDomain)
+                {
+                    try
+                    {
+                        System.Console.WriteLine((attribute.CurrentDomain as ArcGIS.Desktop.Editing.Attributes.CodedValueDomain)[attribute.CurrentValue.ToString()]);
+                    }
+                    catch(System.Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine(e);
+                    }
+                }
             }
         }
 
