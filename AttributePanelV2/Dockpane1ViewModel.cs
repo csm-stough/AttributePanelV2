@@ -20,7 +20,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using static ArcGIS.Desktop.Internal.Mapping.Controls.FloorFilter.FloorFilterListControlVM;
 
 namespace AttributePanelV2
@@ -29,24 +31,27 @@ namespace AttributePanelV2
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<Attribute> attributes { get; set; }
+        public ObservableCollection<Attribute> attributes { get; }
+        public ICommand ApplyCommand { get; }
 
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
             attributes = new ObservableCollection<Attribute>();
+            ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
             attributes.Clear();
 
+            if (args.Selection.Count == 0)
+            {
+                return;
+            }
+
             await QueuedTask.Run(async () =>
             {
-                if (args.Selection.Count == 0)
-                {
-                    return;
-                }
 
                 var selection = args.Selection.ToDictionary();
 
@@ -61,6 +66,8 @@ namespace AttributePanelV2
                 long oid = objectIds.First();
 
                 await _inspector.LoadAsync(featureLayer, oid);
+
+                System.Console.Write("Done!");
             });
 
             foreach (var attribute in _inspector)
@@ -79,6 +86,18 @@ namespace AttributePanelV2
                     }
                 }
             }
+
+            System.Console.WriteLine("Done!");
+        }
+
+        public async void ApplyChanges()
+        {
+            await QueuedTask.Run(async () =>
+            {
+                _inspector.Apply();
+            });
+
+            System.Console.Write("Done!");
         }
 
         /// <summary>
@@ -112,6 +131,27 @@ namespace AttributePanelV2
         protected override void OnClick()
         {
             Dockpane1ViewModel.Show();
+        }
+    }
+
+    internal class RelayCommand : ICommand
+    {
+        private readonly System.Action _execute;
+        public event System.EventHandler CanExecuteChanged;
+
+        public RelayCommand(System.Action execute)
+        {
+            this._execute = execute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return true;
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute.Invoke();
         }
     }
 }
