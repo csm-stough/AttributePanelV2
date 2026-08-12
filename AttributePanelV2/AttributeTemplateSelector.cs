@@ -17,7 +17,7 @@ namespace AttributePanelV2
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            var attribute = item as Attribute;
+            var attribute = item as AttributeFieldViewModel;
 
             if (attribute.HasDomain && attribute.CurrentDomain is ArcGIS.Desktop.Editing.Attributes.CodedValueDomain)
             {

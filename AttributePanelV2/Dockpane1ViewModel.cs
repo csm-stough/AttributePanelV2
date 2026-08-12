@@ -31,7 +31,7 @@ namespace AttributePanelV2
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<Attribute> attributes { get; }
+        public ObservableCollection<AttributeFieldViewModel> attributes { get; }
         public ICommand ApplyCommand { get; }
 
         private static bool _isApplyingEdits = false;
@@ -39,7 +39,7 @@ namespace AttributePanelV2
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
-            attributes = new ObservableCollection<Attribute>();
+            attributes = new ObservableCollection<AttributeFieldViewModel>();
             ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
@@ -76,7 +76,7 @@ namespace AttributePanelV2
 
             foreach (var attribute in _inspector)
             {
-                attributes.Add(attribute);
+                attributes.Add(new AttributeFieldViewModel(attribute));
             }
 
             System.Console.Write("Done!");
