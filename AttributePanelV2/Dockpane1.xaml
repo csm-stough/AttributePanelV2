@@ -15,6 +15,30 @@
                 <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <ui:DomainValueConverter x:Key="DomainValueConverter"/>
+
+            <!-- Data Templates for Attribute Types -->
+
+            <DataTemplate x:Key="StringAttributeTemplate">
+                <TextBox
+                    Text="{Binding CurrentValue, Mode=TwoWay}"
+                    MaxLength="{Binding Length}"
+                />
+            </DataTemplate>
+
+            <DataTemplate x:Key="CodedValueAttributeTemplate">
+                <ComboBox
+                    SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
+                    ItemsSource="{Binding CurrentDomain.CodedValues}"
+                    DisplayMemberPath="Name"
+                    SelectedValuePath="Code"
+                />
+            </DataTemplate>
+
+            <!-- Attribute Template Selector -->
+
+            <ui:AttributeTemplateSelector x:Key="AttributeTemplateSelector"
+                    StringTemplate="{StaticResource StringAttributeTemplate}"
+                    CodedValueTemplate="{StaticResource CodedValueAttributeTemplate}"/>
         </ResourceDictionary>
     </UserControl.Resources>
   <Grid>
@@ -44,19 +68,9 @@
             <StackPanel Grid.Row="1"
                 Margin="10">
 
-                <ItemsControl ItemsSource="{Binding attributes}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel>
-                                <ComboBox 
-                                    SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
-                                    ItemsSource="{Binding CurrentDomain.CodedValues}"
-                                    DisplayMemberPath="Name"
-                                    SelectedValuePath="Code"
-                                    Width="150"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
+                <ItemsControl 
+                    ItemsSource="{Binding attributes}"
+                    ItemTemplateSelector="{StaticResource AttributeTemplateSelector}">
                 </ItemsControl>
                 <Button Content="Apply" 
                     Width="100" 

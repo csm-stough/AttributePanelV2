@@ -34,6 +34,8 @@ namespace AttributePanelV2
         public ObservableCollection<Attribute> attributes { get; }
         public ICommand ApplyCommand { get; }
 
+        private static bool _isApplyingEdits = false;
+
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
@@ -43,6 +45,9 @@ namespace AttributePanelV2
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
+
+            if (_isApplyingEdits) { return; }
+
             attributes.Clear();
 
             if (args.Selection.Count == 0)
@@ -52,7 +57,6 @@ namespace AttributePanelV2
 
             await QueuedTask.Run(async () =>
             {
-
                 var selection = args.Selection.ToDictionary();
 
                 var firstSelection = selection.First();
@@ -73,31 +77,21 @@ namespace AttributePanelV2
             foreach (var attribute in _inspector)
             {
                 attributes.Add(attribute);
-
-                if (attribute.HasDomain)
-                {
-                    try
-                    {
-                        System.Console.WriteLine((attribute.CurrentDomain as ArcGIS.Desktop.Editing.Attributes.CodedValueDomain)[attribute.CurrentValue.ToString()]);
-                    }
-                    catch(System.Exception e)
-                    {
-                        System.Diagnostics.Debug.WriteLine(e);
-                    }
-                }
             }
 
-            System.Console.WriteLine("Done!");
+            System.Console.Write("Done!");
         }
 
         public async void ApplyChanges()
         {
-            await QueuedTask.Run(async () =>
+            Dockpane1ViewModel._isApplyingEdits = true;
+
+            bool result = await QueuedTask.Run(async () =>
             {
-                _inspector.Apply();
+                return await _inspector.ApplyAsync();
             });
 
-            System.Console.Write("Done!");
+            Dockpane1ViewModel._isApplyingEdits = false;
         }
 
         /// <summary>
