@@ -45,9 +45,6 @@ namespace AttributePanelV2
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
-
-            if (_isApplyingEdits) { return; }
-
             attributes.Clear();
 
             if (args.Selection.Count == 0)
@@ -55,6 +52,11 @@ namespace AttributePanelV2
                 return;
             }
 
+            await LoadAttributes(args);
+        }
+
+        private async Task LoadAttributes(MapSelectionChangedEventArgs args)
+        {
             await QueuedTask.Run(async () =>
             {
                 var selection = args.Selection.ToDictionary();
@@ -70,28 +72,20 @@ namespace AttributePanelV2
                 long oid = objectIds.First();
 
                 await _inspector.LoadAsync(featureLayer, oid);
-
-                System.Console.Write("Done!");
             });
 
             foreach (var attribute in _inspector)
             {
                 attributes.Add(new AttributeFieldViewModel(attribute));
             }
-
-            System.Console.Write("Done!");
         }
 
         public async void ApplyChanges()
         {
-            Dockpane1ViewModel._isApplyingEdits = true;
-
             bool result = await QueuedTask.Run(async () =>
             {
                 return await _inspector.ApplyAsync();
             });
-
-            Dockpane1ViewModel._isApplyingEdits = false;
         }
 
         /// <summary>

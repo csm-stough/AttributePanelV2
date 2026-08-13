@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
 
 namespace AttributePanelV2
 {
@@ -32,6 +33,13 @@ namespace AttributePanelV2
 
         public bool HasDomain => _attribute.HasDomain;
 
+        public bool IsDirty => _attribute.IsDirty;
+
         public ArcGIS.Desktop.Editing.Attributes.CodedValueDomain CurrentDomain => _attribute.CurrentDomain as ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
+    
+        public IEnumerable<CodedValue> DomainValues => CurrentDomain?.CodedValues ?? Enumerable.Empty<CodedValue>();
+
+        //Properties to make the attrbute template selector's job easier
+        public bool IsCodedValue => HasDomain && CurrentDomain is ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
     }
 }

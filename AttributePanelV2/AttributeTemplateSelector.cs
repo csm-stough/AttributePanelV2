@@ -19,7 +19,7 @@ namespace AttributePanelV2
         {
             var attribute = item as AttributeFieldViewModel;
 
-            if (attribute.HasDomain && attribute.CurrentDomain is ArcGIS.Desktop.Editing.Attributes.CodedValueDomain)
+            if (attribute.IsCodedValue)
             {
                 return CodedValueTemplate;
             }

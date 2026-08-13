@@ -28,7 +28,7 @@
             <DataTemplate x:Key="CodedValueAttributeTemplate">
                 <ComboBox
                     SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
-                    ItemsSource="{Binding CurrentDomain.CodedValues}"
+                    ItemsSource="{Binding DomainValues}"
                     DisplayMemberPath="Name"
                     SelectedValuePath="Code"
                 />
