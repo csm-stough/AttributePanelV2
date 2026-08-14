@@ -19,6 +19,9 @@ namespace AttributePanelV2
         }
 
         public string FieldName => _attribute.FieldName;
+
+        public string Alias => _attribute.FieldAlias;
+
         public object CurrentValue
         {
             get => _attribute.CurrentValue;

@@ -14,31 +14,88 @@
             <ResourceDictionary.MergedDictionaries>
                 <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Attribute Type Converters -->
             <ui:DomainValueConverter x:Key="DomainValueConverter"/>
+            <ui:DoubleValueConverter x:Key="DoubleValueConverter"/>
+            <ui:IntegerValueConverter x:Key="IntegerValueConverter"/>
 
             <!-- Data Templates for Attribute Types -->
-
             <DataTemplate x:Key="StringAttributeTemplate">
-                <TextBox
-                    Text="{Binding CurrentValue, Mode=TwoWay}"
-                    MaxLength="{Binding Length}"
-                />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue, Mode=TwoWay}"
+                        MaxLength="{Binding Length}"
+                    />
+                </Grid>
             </DataTemplate>
 
             <DataTemplate x:Key="CodedValueAttributeTemplate">
-                <ComboBox
-                    SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
-                    ItemsSource="{Binding DomainValues}"
-                    DisplayMemberPath="Name"
-                    SelectedValuePath="Code"
-                />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <ComboBox
+                        Grid.Column="1"
+                        SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
+                        ItemsSource="{Binding DomainValues}"
+                        DisplayMemberPath="Name"
+                        SelectedValuePath="Code"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="DoubleAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="IntegerAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}}"
+                    />
+                </Grid>
             </DataTemplate>
 
             <!-- Attribute Template Selector -->
 
             <ui:AttributeTemplateSelector x:Key="AttributeTemplateSelector"
                     StringTemplate="{StaticResource StringAttributeTemplate}"
-                    CodedValueTemplate="{StaticResource CodedValueAttributeTemplate}"/>
+                    CodedValueTemplate="{StaticResource CodedValueAttributeTemplate}"
+                    DoubleTemplate="{StaticResource DoubleAttributeTemplate}"
+                    IntegerTemplate="{StaticResource IntegerAttributeTemplate}"/>
         </ResourceDictionary>
     </UserControl.Resources>
   <Grid>

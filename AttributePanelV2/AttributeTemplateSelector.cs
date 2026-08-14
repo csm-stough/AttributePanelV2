@@ -14,6 +14,8 @@ namespace AttributePanelV2
 
         public DataTemplate StringTemplate { get; set; }
         public DataTemplate CodedValueTemplate { get; set; }
+        public DataTemplate DoubleTemplate { get; set; }
+        public DataTemplate IntegerTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
@@ -27,6 +29,16 @@ namespace AttributePanelV2
             if (attribute.FieldType == FieldType.String)
             {
                 return StringTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.Double)
+            {
+                return DoubleTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.Integer) 
+            {
+                return IntegerTemplate;
             }
 
             return base.SelectTemplate(item, container);

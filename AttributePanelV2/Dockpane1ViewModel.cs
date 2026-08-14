@@ -78,6 +78,8 @@ namespace AttributePanelV2
             {
                 attributes.Add(new AttributeFieldViewModel(attribute));
             }
+
+            System.Console.Write("Done!");
         }
 
         public async void ApplyChanges()
