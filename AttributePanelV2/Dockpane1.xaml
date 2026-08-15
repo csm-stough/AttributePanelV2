@@ -19,6 +19,8 @@
             <ui:DomainValueConverter x:Key="DomainValueConverter"/>
             <ui:DoubleValueConverter x:Key="DoubleValueConverter"/>
             <ui:IntegerValueConverter x:Key="IntegerValueConverter"/>
+            <ui:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
+            <ui:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
 
             <!-- Data Templates for Attribute Types -->
             <DataTemplate x:Key="StringAttributeTemplate">
@@ -84,7 +86,87 @@
                         VerticalAlignment="Center"/>
                     <TextBox
                         Grid.Column="1"
-                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}}"
+                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource IntegerValueConverter}}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="SmallIntegerAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource SmallIntegerValueConverter}}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="BigIntegerAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBox
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource BigIntegerValueConverter}}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="OIDAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="GeometryAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue}"
+                    />
+                </Grid>
+            </DataTemplate>
+
+            <DataTemplate x:Key="GUIDAttributeTemplate">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Text="{Binding Alias}"
+                        VerticalAlignment="Center"/>
+                    <TextBlock
+                        Grid.Column="1"
+                        Text="{Binding CurrentValue}"
                     />
                 </Grid>
             </DataTemplate>
@@ -95,7 +177,12 @@
                     StringTemplate="{StaticResource StringAttributeTemplate}"
                     CodedValueTemplate="{StaticResource CodedValueAttributeTemplate}"
                     DoubleTemplate="{StaticResource DoubleAttributeTemplate}"
-                    IntegerTemplate="{StaticResource IntegerAttributeTemplate}"/>
+                    IntegerTemplate="{StaticResource IntegerAttributeTemplate}"
+                    SmallIntegerTemplate="{StaticResource SmallIntegerAttributeTemplate}"
+                    BigIntegerTemplate="{StaticResource BigIntegerAttributeTemplate}"
+                    OIDTemplate="{StaticResource OIDAttributeTemplate}"
+                    GeometryTemplate="{StaticResource GeometryAttributeTemplate}"
+                    GUIDTemplate="{StaticResource GUIDAttributeTemplate}"/>
         </ResourceDictionary>
     </UserControl.Resources>
   <Grid>

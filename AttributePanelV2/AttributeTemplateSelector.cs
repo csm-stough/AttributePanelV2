@@ -16,6 +16,11 @@ namespace AttributePanelV2
         public DataTemplate CodedValueTemplate { get; set; }
         public DataTemplate DoubleTemplate { get; set; }
         public DataTemplate IntegerTemplate { get; set; }
+        public DataTemplate SmallIntegerTemplate { get; set; }
+        public DataTemplate BigIntegerTemplate { get; set; }
+        public DataTemplate OIDTemplate { get; set; }
+        public DataTemplate GeometryTemplate { get; set; }
+        public DataTemplate GUIDTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
@@ -39,6 +44,31 @@ namespace AttributePanelV2
             if (attribute.FieldType == FieldType.Integer) 
             {
                 return IntegerTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.SmallInteger)
+            {
+                return SmallIntegerTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.BigInteger)
+            {
+                return BigIntegerTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.OID)
+            {
+                return OIDTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.Geometry)
+            {
+                return GeometryTemplate;
+            }
+
+            if (attribute.FieldType == FieldType.GUID)
+            {
+                return GUIDTemplate;
             }
 
             return base.SelectTemplate(item, container);
