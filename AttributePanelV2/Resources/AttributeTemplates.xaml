@@ -1,0 +1,356 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:ui="clr-namespace:AttributePanelV2">
+
+	<!-- Attribute Type Converters -->
+	<ui:DomainValueConverter x:Key="DomainValueConverter"/>
+	<ui:DoubleValueConverter x:Key="DoubleValueConverter"/>
+	<ui:IntegerValueConverter x:Key="IntegerValueConverter"/>
+	<ui:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
+	<ui:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
+	
+	<DataTemplate x:Key="StringAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay}"
+                MaxLength="{Binding Length}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="CodedValueAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <ComboBox
+                Grid.Column="2"
+                SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
+                ItemsSource="{Binding DomainValues}"
+                DisplayMemberPath="Name"
+                SelectedValuePath="Code"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DoubleAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="IntegerAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource IntegerValueConverter}}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="SmallIntegerAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource SmallIntegerValueConverter}}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="BigIntegerAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource BigIntegerValueConverter}}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="OIDAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBlock
+                Grid.Column="2"
+                Text="{Binding CurrentValue}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="GeometryAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBlock
+                Grid.Column="2"
+                Text="{Binding CurrentValue}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="GUIDAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBlock
+                Grid.Column="2"
+                Text="{Binding CurrentValue}"
+            />
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>
