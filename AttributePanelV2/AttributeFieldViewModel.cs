@@ -61,6 +61,9 @@ namespace AttributePanelV2
                     NotifyPropertyChanged(nameof(CurrentDomain));
                     NotifyPropertyChanged(nameof(IsCodedValue));
                     break;
+                case "IsEditable":
+                    NotifyPropertyChanged(nameof(IsEditable));
+                    break;
             }
 
             System.Console.WriteLine("Attribute Update Event!");

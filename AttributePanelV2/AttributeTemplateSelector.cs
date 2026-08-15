@@ -24,54 +24,28 @@ namespace AttributePanelV2
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            var attribute = item as AttributeFieldViewModel;
+            if (item is not AttributeFieldViewModel attribute)
+            {
+                return base.SelectTemplate(item, container);
+            }
 
             if (attribute.IsCodedValue)
             {
                 return CodedValueTemplate;
             }
 
-            if (attribute.FieldType == FieldType.String)
+            return attribute.FieldType switch
             {
-                return StringTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.Double)
-            {
-                return DoubleTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.Integer) 
-            {
-                return IntegerTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.SmallInteger)
-            {
-                return SmallIntegerTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.BigInteger)
-            {
-                return BigIntegerTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.OID)
-            {
-                return OIDTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.Geometry)
-            {
-                return GeometryTemplate;
-            }
-
-            if (attribute.FieldType == FieldType.GUID)
-            {
-                return GUIDTemplate;
-            }
-
-            return base.SelectTemplate(item, container);
+                FieldType.String => StringTemplate,
+                FieldType.Double => DoubleTemplate,
+                FieldType.Integer => IntegerTemplate,
+                FieldType.SmallInteger => SmallIntegerTemplate,
+                FieldType.BigInteger => BigIntegerTemplate,
+                FieldType.OID => OIDTemplate,
+                FieldType.Geometry => GeometryTemplate,
+                FieldType.GUID => GUIDTemplate,
+                _ => base.SelectTemplate(item, container)
+            };
         }
     }
 }
