@@ -1,29 +1,15 @@
-﻿using ArcGIS.Core.CIM;
-using ArcGIS.Core.Data;
-using ArcGIS.Core.Geometry;
-using ArcGIS.Desktop.Catalog;
-using ArcGIS.Desktop.Core;
-using ArcGIS.Desktop.Editing;
+﻿
 using ArcGIS.Desktop.Editing.Attributes;
-using ArcGIS.Desktop.Extensions;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
-using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
-using ArcGIS.Desktop.KnowledgeGraph;
-using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
-using static ArcGIS.Desktop.Internal.Mapping.Controls.FloorFilter.FloorFilterListControlVM;
 
 namespace AttributePanelV2
 {
@@ -31,21 +17,19 @@ namespace AttributePanelV2
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<AttributeFieldViewModel> attributes { get; }
+        public ObservableCollection<AttributeFieldViewModel> Attributes { get; }
         public ICommand ApplyCommand { get; }
-
-        private static bool _isApplyingEdits = false;
 
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
-            attributes = new ObservableCollection<AttributeFieldViewModel>();
+            Attributes = new ObservableCollection<AttributeFieldViewModel>();
             ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
-            attributes.Clear();
+            Attributes.Clear();
 
             if (args.Selection.Count == 0)
             {
@@ -76,15 +60,13 @@ namespace AttributePanelV2
 
             foreach (var attribute in _inspector)
             {
-                attributes.Add(new AttributeFieldViewModel(attribute));
+                Attributes.Add(new AttributeFieldViewModel(attribute));
             }
-
-            System.Console.Write("Done!");
         }
 
         public async void ApplyChanges()
         {
-            bool result = await QueuedTask.Run(async () =>
+            await QueuedTask.Run(async () =>
             {
                 return await _inspector.ApplyAsync();
             });

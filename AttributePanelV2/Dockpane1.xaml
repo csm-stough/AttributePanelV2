@@ -213,7 +213,7 @@
                 Margin="10">
 
                 <ItemsControl 
-                    ItemsSource="{Binding attributes}"
+                    ItemsSource="{Binding Attributes}"
                     ItemTemplateSelector="{StaticResource AttributeTemplateSelector}">
                 </ItemsControl>
                 <Button Content="Apply" 

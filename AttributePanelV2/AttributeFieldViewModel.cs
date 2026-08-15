@@ -2,6 +2,7 @@
 using ArcGIS.Desktop.Editing.Attributes;
 using ArcGIS.Desktop.Framework.Contracts;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace AttributePanelV2
         public AttributeFieldViewModel(Attribute attribute)
         {
             _attribute = attribute;
+            _attribute.PropertyChanged += PropertyChanged;
         }
 
         public string FieldName => _attribute.FieldName;
@@ -32,7 +34,7 @@ namespace AttributePanelV2
 
         public int Length => _attribute.Length;
 
-        public bool isEditable => _attribute.IsEditable;
+        public bool IsEditable => _attribute.IsEditable;
 
         public bool HasDomain => _attribute.HasDomain;
 
@@ -43,6 +45,25 @@ namespace AttributePanelV2
         public IEnumerable<CodedValue> DomainValues => CurrentDomain?.CodedValues ?? Enumerable.Empty<CodedValue>();
 
         //Properties to make the attrbute template selector's job easier
-        public bool IsCodedValue => HasDomain && CurrentDomain is ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
+        public bool IsCodedValue => CurrentDomain != null;
+
+        private new void PropertyChanged(object sender, PropertyChangedEventArgs args)
+        {
+            switch(args.PropertyName)
+            {
+                case "CurrentValue":
+                    NotifyPropertyChanged(nameof(CurrentValue));
+                    break;
+                case "IsDirty":
+                    NotifyPropertyChanged(nameof(IsDirty));
+                    break;
+                case "CurrentDomain":
+                    NotifyPropertyChanged(nameof(CurrentDomain));
+                    NotifyPropertyChanged(nameof(IsCodedValue));
+                    break;
+            }
+
+            System.Console.WriteLine("Attribute Update Event!");
+        }
     }
 }
