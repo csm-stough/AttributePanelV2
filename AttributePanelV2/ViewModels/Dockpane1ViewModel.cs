@@ -1,4 +1,5 @@
 ﻿
+using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Desktop.Editing.Attributes;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
@@ -17,51 +18,76 @@ namespace AttributePanelV2.ViewModels
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<AttributeFieldViewModel> Attributes { get; }
+        public ObservableCollection<FeatureClassViewModel> FeatureClasses { get; }
         public ICommand ApplyCommand { get; }
 
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
-            Attributes = new ObservableCollection<AttributeFieldViewModel>();
+            FeatureClasses = new ObservableCollection<FeatureClassViewModel>();
             ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
-            Attributes.Clear();
+            FeatureClasses.Clear();
 
             if (args.Selection.Count == 0)
             {
                 return;
             }
 
-            await LoadAttributes(args);
+            await LoadSelection(args);
         }
 
-        private async Task LoadAttributes(MapSelectionChangedEventArgs args)
+        private async Task LoadSelection(MapSelectionChangedEventArgs args)
         {
-            await QueuedTask.Run(async () =>
+            var selection = args.Selection.ToDictionary();
+
+            var featureClasses = await QueuedTask.Run(async () =>
             {
-                var selection = args.Selection.ToDictionary();
+                var result = new List<FeatureClassViewModel>();
 
-                var firstSelection = selection.First();
+                foreach (var selectedLayer in selection)
+                {
+                    if (selectedLayer.Key is not FeatureLayer featureLayer)
+                    {
+                        continue;
+                    }
 
-                MapMember mapMember = firstSelection.Key;
-                List<long> objectIds = firstSelection.Value;
+                    var featureClassViewModel = new FeatureClassViewModel(featureLayer);
 
-                if (mapMember is not FeatureLayer featureLayer)
-                    return;
+                    foreach (var objectId in selectedLayer.Value)
+                    {
+                        var feature = await LoadFeature(featureLayer, objectId);
 
-                long oid = objectIds.First();
+                        featureClassViewModel.Features.Add(feature);
+                    }
 
-                await _inspector.LoadAsync(featureLayer, oid);
+                    result.Add(featureClassViewModel);
+                }
+
+                return result;
             });
 
-            foreach (var attribute in _inspector)
+            foreach(var featureClass in featureClasses)
             {
-                Attributes.Add(new AttributeFieldViewModel(attribute));
+                FeatureClasses.Add(featureClass);
             }
+        }
+
+        private async Task<SelectedFeatureViewModel> LoadFeature(FeatureLayer featureLayer, long objectId)
+        {
+            await _inspector.LoadAsync(featureLayer, objectId);
+
+            var feature = new SelectedFeatureViewModel(featureLayer, objectId);
+
+            foreach(var attribute in _inspector)
+            {
+                feature.Attributes.Add(new AttributeFieldViewModel(attribute));
+            }
+
+            return feature;
         }
 
         public async void ApplyChanges()
