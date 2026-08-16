@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 
 namespace AttributePanelV2.ViewModels
 {
-    public class FeatureClassViewModel : PropertyChangedBase
+    public class FeatureLayerViewModel : PropertyChangedBase
     {
 
         public FeatureLayer FeatureLayer { get; }
         public ObservableCollection<SelectedFeatureViewModel> Features { get; }
 
-        public FeatureClassViewModel(FeatureLayer featureLayer)
+        public FeatureLayerViewModel(FeatureLayer featureLayer)
         {
             FeatureLayer = featureLayer;
             Features = new ObservableCollection<SelectedFeatureViewModel>();

@@ -6,67 +6,87 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
+using ArcGIS.Core.Data;
 
 namespace AttributePanelV2.ViewModels
 {
     public class AttributeFieldViewModel : PropertyChangedBase
     {
-        private readonly Attribute _attribute;
 
-        public AttributeFieldViewModel(Attribute attribute)
+        public AttributeFieldViewModel(Field field, object value)
         {
-            _attribute = attribute;
-            _attribute.PropertyChanged += PropertyChanged;
+            FieldName = field.Name;
+            Alias = field.AliasName;
+            OriginalValue = value;
+            CurrentValue = value;
+            FieldType = field.FieldType;
+            Length = field.Length;
+            IsEditable = field.IsEditable;
+            HasDomain = field.GetDomain() != null;
+            CurrentDomain = field.GetDomain();
+            IsCodedValue = CurrentDomain is ArcGIS.Core.Data.CodedValueDomain;
+            DomainValues = (CurrentDomain as ArcGIS.Core.Data.CodedValueDomain)?.GetCodedValuePairs() ?? new SortedList<object, string>();
         }
 
-        public string FieldName => _attribute.FieldName;
-
-        public string Alias => _attribute.FieldAlias;
-
+        public string FieldName { get; }
+        public string Alias { get; }
+        public object _currentValue;
+        public object OriginalValue { get; }
         public object CurrentValue
         {
-            get => _attribute.CurrentValue;
-            set => _attribute.CurrentValue = value;
-        }
-
-        public FieldType FieldType => _attribute.FieldType;
-
-        public int Length => _attribute.Length;
-
-        public bool IsEditable => _attribute.IsEditable;
-
-        public bool HasDomain => _attribute.HasDomain;
-
-        public bool IsDirty => _attribute.IsDirty;
-
-        public ArcGIS.Desktop.Editing.Attributes.CodedValueDomain CurrentDomain => _attribute.CurrentDomain as ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
-    
-        public IEnumerable<CodedValue> DomainValues => CurrentDomain?.CodedValues ?? Enumerable.Empty<CodedValue>();
-
-        //Properties to make the attrbute template selector's job easier
-        public bool IsCodedValue => CurrentDomain != null;
-
-        private new void PropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            switch(args.PropertyName)
+            get => _currentValue;
+            set
             {
-                case "CurrentValue":
-                    NotifyPropertyChanged(nameof(CurrentValue));
-                    break;
-                case "IsDirty":
-                    NotifyPropertyChanged(nameof(IsDirty));
-                    break;
-                case "CurrentDomain":
-                    NotifyPropertyChanged(nameof(CurrentDomain));
-                    NotifyPropertyChanged(nameof(IsCodedValue));
-                    break;
-                case "IsEditable":
-                    NotifyPropertyChanged(nameof(IsEditable));
-                    break;
+                if (Equals(_currentValue, value))
+                {
+                    return;
+                }
+                _currentValue = value;
+                NotifyPropertyChanged();
+                IsDirty = !Equals(OriginalValue, _currentValue);
             }
-
-            System.Console.WriteLine("Attribute Update Event!");
         }
+        public FieldType FieldType { get; }
+        public int Length { get; }
+        public bool IsEditable { get; }
+        public bool HasDomain { get; }
+        public bool _isDirty;
+        public bool IsDirty
+        {
+            get => _isDirty;
+            private set
+            {
+                if(_isDirty == value)
+                {
+                    return;
+                }
+
+                _isDirty = value;
+                NotifyPropertyChanged();
+            }
+        }
+        public ArcGIS.Core.Data.Domain CurrentDomain { get; }
+        public SortedList<object, string> DomainValues { get; }
+        public bool IsCodedValue { get; }
+
+        //private new void PropertyChanged(object sender, PropertyChangedEventArgs args)
+        //{
+        //    switch(args.PropertyName)
+        //    {
+        //        case "CurrentValue":
+        //            NotifyPropertyChanged(nameof(CurrentValue));
+        //            break;
+        //        case "IsDirty":
+        //            NotifyPropertyChanged(nameof(IsDirty));
+        //            break;
+        //        case "CurrentDomain":
+        //            NotifyPropertyChanged(nameof(CurrentDomain));
+        //            NotifyPropertyChanged(nameof(IsCodedValue));
+        //            break;
+        //        case "IsEditable":
+        //            NotifyPropertyChanged(nameof(IsEditable));
+        //            break;
+        //    }
+        //}
     }
 }

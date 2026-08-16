@@ -1,4 +1,5 @@
 ﻿
+using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Desktop.Editing.Attributes;
 using ArcGIS.Desktop.Framework;
@@ -8,6 +9,7 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -18,13 +20,14 @@ namespace AttributePanelV2.ViewModels
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<FeatureClassViewModel> FeatureClasses { get; }
+        public ObservableCollection<FeatureLayerViewModel> FeatureClasses { get; }
         public ICommand ApplyCommand { get; }
+        public object SelectedItem { get; set; }
 
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
-            FeatureClasses = new ObservableCollection<FeatureClassViewModel>();
+            FeatureClasses = new ObservableCollection<FeatureLayerViewModel>();
             ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
@@ -46,7 +49,7 @@ namespace AttributePanelV2.ViewModels
 
             var featureClasses = await QueuedTask.Run(async () =>
             {
-                var result = new List<FeatureClassViewModel>();
+                var result = new List<FeatureLayerViewModel>();
 
                 foreach (var selectedLayer in selection)
                 {
@@ -55,16 +58,25 @@ namespace AttributePanelV2.ViewModels
                         continue;
                     }
 
-                    var featureClassViewModel = new FeatureClassViewModel(featureLayer);
+                    var featureLayerViewModel = new FeatureLayerViewModel(featureLayer);
 
-                    foreach (var objectId in selectedLayer.Value)
+                    var queryFilter = new QueryFilter
                     {
-                        var feature = await LoadFeature(featureLayer, objectId);
+                        ObjectIDs = selectedLayer.Value
+                    };
 
-                        featureClassViewModel.Features.Add(feature);
+                    using var cursor = featureLayer.Search(queryFilter);
+
+                    while (cursor.MoveNext())
+                    {
+                        using var row = cursor.Current;
+
+                        var feature = LoadFeature(featureLayer, row);
+
+                        featureLayerViewModel.Features.Add(feature);
                     }
 
-                    result.Add(featureClassViewModel);
+                    result.Add(featureLayerViewModel);
                 }
 
                 return result;
@@ -74,20 +86,22 @@ namespace AttributePanelV2.ViewModels
             {
                 FeatureClasses.Add(featureClass);
             }
+
+            System.Console.Write("Done!");
         }
 
-        private async Task<SelectedFeatureViewModel> LoadFeature(FeatureLayer featureLayer, long objectId)
+        private SelectedFeatureViewModel LoadFeature(FeatureLayer featureLayer, Row row)
         {
-            await _inspector.LoadAsync(featureLayer, objectId);
+            var selectedFeature = new SelectedFeatureViewModel(featureLayer, row.GetObjectID());
 
-            var feature = new SelectedFeatureViewModel(featureLayer, objectId);
-
-            foreach(var attribute in _inspector)
+            foreach (var field in row.GetFields())
             {
-                feature.Attributes.Add(new AttributeFieldViewModel(attribute));
+                var attribute = new AttributeFieldViewModel(field, row[field.Name]);
+
+                selectedFeature.Attributes.Add(attribute);
             }
 
-            return feature;
+            return selectedFeature;
         }
 
         public async void ApplyChanges()
