@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.Converters
 {
-    public class BigIntegerValueConverter : IValueConverter
+    class SmallIntegerValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is long val)
+            if (value is short val)
             {
                 return val.ToString();
             }
@@ -24,7 +24,7 @@ namespace AttributePanelV2
         {
             if (value is string str)
             {
-                if (long.TryParse(str, NumberStyles.None, culture, out long result))
+                if (short.TryParse(str, NumberStyles.None, culture, out short result))
                 {
                     return result;
                 }

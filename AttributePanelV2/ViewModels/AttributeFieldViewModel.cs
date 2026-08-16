@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static ArcGIS.Desktop.Editing.Attributes.CodedValueDomain;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.ViewModels
 {
     public class AttributeFieldViewModel : PropertyChangedBase
     {

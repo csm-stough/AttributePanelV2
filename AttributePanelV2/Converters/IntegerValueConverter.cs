@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.Converters
 {
     public class IntegerValueConverter
     {

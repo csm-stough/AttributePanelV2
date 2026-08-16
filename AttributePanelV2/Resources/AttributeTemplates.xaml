@@ -1,14 +1,15 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:ui="clr-namespace:AttributePanelV2">
+	xmlns:ui="clr-namespace:AttributePanelV2"
+	xmlns:converters="clr-namespace:AttributePanelV2.Converters">
 
 	<!-- Attribute Type Converters -->
-	<ui:DomainValueConverter x:Key="DomainValueConverter"/>
-	<ui:DoubleValueConverter x:Key="DoubleValueConverter"/>
-	<ui:IntegerValueConverter x:Key="IntegerValueConverter"/>
-	<ui:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
-	<ui:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
+	<converters:DomainValueConverter x:Key="DomainValueConverter"/>
+	<converters:DoubleValueConverter x:Key="DoubleValueConverter"/>
+	<converters:IntegerValueConverter x:Key="IntegerValueConverter"/>
+	<converters:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
+	<converters:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
 	
 	<DataTemplate x:Key="StringAttributeTemplate">
         <Grid>

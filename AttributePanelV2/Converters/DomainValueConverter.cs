@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.Converters
 {
     public class DomainValueConverter : IValueConverter
     {

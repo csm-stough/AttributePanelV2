@@ -1,5 +1,6 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Desktop.Editing.Attributes;
+using AttributePanelV2.ViewModels;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

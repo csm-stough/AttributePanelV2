@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.Converters
 {
-    public class DoubleValueConverter : IValueConverter
+    public class BigIntegerValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is double dbl)
+            if (value is long val)
             {
-                return dbl.ToString();
+                return val.ToString();
             }
             return DependencyProperty.UnsetValue;
         }
@@ -24,7 +24,7 @@ namespace AttributePanelV2
         {
             if (value is string str)
             {
-                if(Double.TryParse(str, NumberStyles.None, culture, out double result))
+                if (long.TryParse(str, NumberStyles.None, culture, out long result))
                 {
                     return result;
                 }

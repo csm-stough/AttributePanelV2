@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace AttributePanelV2
+namespace AttributePanelV2.ViewModels
 {
     internal class Dockpane1ViewModel : DockPane
     {
