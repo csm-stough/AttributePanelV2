@@ -30,45 +30,72 @@
                     GUIDTemplate="{StaticResource GUIDAttributeTemplate}"/>
         </ResourceDictionary>
     </UserControl.Resources>
-  <Grid>
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-    </Grid.RowDefinitions>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- 1. The top DockPanel height -->
+            <RowDefinition Height="Auto"/>
+            <!-- 2. The main available area for the rest of your UI -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
         <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
         </DockPanel>
-        <Grid>
 
+        <!-- FIXED: Assigned this Grid to Grid.Row="1" so it uses the remaining window space -->
+        <Grid Grid.Row="1">
             <Grid.RowDefinitions>
+                <!-- 1. DockPane Header height -->
                 <RowDefinition Height="Auto"/>
+                <!-- 2. The rest of the workspace height -->
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-
             <!-- DockPane Header -->
             <DockPanel Grid.Row="0"
-               LastChildFill="true"
-               KeyboardNavigation.TabNavigation="Local"
-               Height="30">
+                       LastChildFill="true"
+                       KeyboardNavigation.TabNavigation="Local"
+                       Height="30">
             </DockPanel>
 
+            <!-- FIXED: Assigned this Grid to Grid.Row="1" so it splits the remaining space perfectly -->
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <!-- TreeView gets 50% of remaining space -->
+                    <RowDefinition Height="*"/>
+                    <!-- Attribute editor gets 50% of remaining space -->
+                </Grid.RowDefinitions>
 
-            <!-- Actual Content -->
-            <StackPanel Grid.Row="1"
-                Margin="10">
+                <!-- Selection browser -->
+                <TreeView 
+                    Grid.Row="0" 
+                    ItemsSource="{Binding FeatureClasses}"
+                    SelectedItemChanged="TreeView_SelectedItemChanged">
+                    <TreeView.Resources>
+                        <Style TargetType="TreeViewItem"
+                            BasedOn="{StaticResource {x:Type TreeViewItem}}">
+                            <Setter Property="IsExpanded" Value="True"/>
+                        </Style>
+                        <HierarchicalDataTemplate
+                            DataType="{x:Type vm:FeatureLayerViewModel}"
+                            ItemsSource="{Binding Features}">
+                            <TextBlock Text="{Binding FeatureLayer.Name}" />
+                        </HierarchicalDataTemplate>
+                        <DataTemplate
+                            DataType="{x:Type vm:SelectedFeatureViewModel}">
+                            <TextBlock Text="{Binding}" />
+                        </DataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
 
-                <ItemsControl 
-                    ItemsSource="{Binding Attributes}"
-                    ItemTemplateSelector="{StaticResource AttributeTemplateSelector}">
-                </ItemsControl>
-                <Button Content="Apply" 
-                    Width="100" 
-                    Height="30" 
-                    HorizontalAlignment="Center" 
-                    VerticalAlignment="Center" 
-                    Command="{Binding ApplyCommand}"/>
-            </StackPanel>
-
+                <!-- Attribute editor -->
+                <ScrollViewer Grid.Row="1">
+                    <ItemsControl
+                        ItemsSource="{Binding SelectedItem.Attributes}"
+                        ItemTemplateSelector="{StaticResource AttributeTemplateSelector}" />
+                </ScrollViewer>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

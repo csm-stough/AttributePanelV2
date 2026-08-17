@@ -85,8 +85,8 @@
                 Grid.Column="2"
                 SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
                 ItemsSource="{Binding DomainValues}"
-                DisplayMemberPath="Name"
-                SelectedValuePath="Code"
+                DisplayMemberPath="Value"
+                SelectedValuePath="Key"
                 IsEnabled="{Binding IsEditable}"
             />
         </Grid>

@@ -2,6 +2,7 @@
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
 using ArcGIS.Desktop.Editing.Attributes;
+using ArcGIS.Desktop.Editing.Controls;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
@@ -12,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace AttributePanelV2.ViewModels
@@ -22,7 +24,18 @@ namespace AttributePanelV2.ViewModels
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
         public ObservableCollection<FeatureLayerViewModel> FeatureClasses { get; }
         public ICommand ApplyCommand { get; }
-        public object SelectedItem { get; set; }
+        public object _selectedItem;
+
+        public object SelectedItem
+        {
+            get => _selectedItem;
+            set
+            {
+                if(Equals(_selectedItem, value)) { return; }
+                _selectedItem = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         protected Dockpane1ViewModel() 
         {
@@ -166,4 +179,6 @@ namespace AttributePanelV2.ViewModels
             _execute.Invoke();
         }
     }
+
+
 }

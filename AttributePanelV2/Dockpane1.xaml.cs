@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AttributePanelV2.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,6 +25,16 @@ namespace AttributePanelV2
         public Dockpane1View()
         {
             InitializeComponent();
+        }
+
+        public void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            var viewModel = DataContext as Dockpane1ViewModel;
+
+            if (viewModel != null)
+            {
+                viewModel.SelectedItem = e.NewValue;
+            }
         }
     }
 }
