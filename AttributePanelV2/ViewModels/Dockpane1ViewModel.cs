@@ -1,11 +1,13 @@
 ﻿
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
+using ArcGIS.Desktop.Editing;
 using ArcGIS.Desktop.Editing.Attributes;
 using ArcGIS.Desktop.Editing.Controls;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
+using ArcGIS.Desktop.Internal.Mapping.Locate;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
 using System.Collections.Generic;
@@ -22,7 +24,7 @@ namespace AttributePanelV2.ViewModels
     {
         private readonly Inspector _inspector = new Inspector();
         private const string _dockPaneID = "AttributePanelV2_Dockpane1";
-        public ObservableCollection<FeatureLayerViewModel> FeatureClasses { get; }
+        public ObservableCollection<FeatureLayerViewModel> FeatureLayers { get; }
         public ICommand ApplyCommand { get; }
         public object _selectedItem;
 
@@ -37,16 +39,24 @@ namespace AttributePanelV2.ViewModels
             }
         }
 
+        public FeatureLayerViewModel CurrentFeatureLayer =>
+            SelectedItem switch
+            {
+                FeatureLayerViewModel layer => layer,
+                SelectedFeatureViewModel feature => feature.ParentLayer,
+                _ => null
+            };
+
         protected Dockpane1ViewModel() 
         {
             MapSelectionChangedEvent.Subscribe(OnSelectionChanged);
-            FeatureClasses = new ObservableCollection<FeatureLayerViewModel>();
+            FeatureLayers = new ObservableCollection<FeatureLayerViewModel>();
             ApplyCommand = new RelayCommand(ApplyChanges);
         }
 
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
-            FeatureClasses.Clear();
+            FeatureLayers.Clear();
 
             if (args.Selection.Count == 0)
             {
@@ -84,7 +94,7 @@ namespace AttributePanelV2.ViewModels
                     {
                         using var row = cursor.Current;
 
-                        var feature = LoadFeature(featureLayer, row);
+                        var feature = LoadFeature(featureLayerViewModel, row);
 
                         featureLayerViewModel.Features.Add(feature);
                     }
@@ -97,15 +107,13 @@ namespace AttributePanelV2.ViewModels
 
             foreach(var featureClass in featureClasses)
             {
-                FeatureClasses.Add(featureClass);
+                FeatureLayers.Add(featureClass);
             }
-
-            System.Console.Write("Done!");
         }
 
-        private SelectedFeatureViewModel LoadFeature(FeatureLayer featureLayer, Row row)
+        private SelectedFeatureViewModel LoadFeature(FeatureLayerViewModel featureLayerViewModel, Row row)
         {
-            var selectedFeature = new SelectedFeatureViewModel(featureLayer, row.GetObjectID());
+            var selectedFeature = new SelectedFeatureViewModel(featureLayerViewModel, row.GetObjectID());
 
             foreach (var field in row.GetFields())
             {
@@ -119,10 +127,34 @@ namespace AttributePanelV2.ViewModels
 
         public async void ApplyChanges()
         {
-            await QueuedTask.Run(async () =>
+            bool success = await QueuedTask.Run(() =>
             {
-                return await _inspector.ApplyAsync();
+                EditOperation edit = new EditOperation
+                {
+                    Name = "Update Attributes"
+                };
+
+                foreach (var feature in CurrentFeatureLayer.DirtyFeatures)
+                {
+                    var updates = feature.DirtyAttributes
+                        .Where(attribute => attribute.IsEditable)
+                        .ToDictionary(
+                            attribute => attribute.FieldName,
+                            attribute => attribute.CurrentValue);
+
+                    edit.Modify(feature.ParentLayer.Layer, feature.ObjectID, updates);
+                }
+
+                return edit.Execute();
             });
+
+            if(success)
+            {
+                foreach (var feature in CurrentFeatureLayer.DirtyFeatures)
+                {
+                    feature.CommitChanges();
+                }
+            }
         }
 
         /// <summary>

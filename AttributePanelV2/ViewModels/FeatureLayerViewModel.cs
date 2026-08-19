@@ -12,12 +12,13 @@ namespace AttributePanelV2.ViewModels
     public class FeatureLayerViewModel : PropertyChangedBase
     {
 
-        public FeatureLayer FeatureLayer { get; }
+        public FeatureLayer Layer { get; }
         public ObservableCollection<SelectedFeatureViewModel> Features { get; }
+        public IEnumerable<SelectedFeatureViewModel> DirtyFeatures => Features.Where(feature => feature.DirtyAttributes.Any());
 
         public FeatureLayerViewModel(FeatureLayer featureLayer)
         {
-            FeatureLayer = featureLayer;
+            Layer = featureLayer;
             Features = new ObservableCollection<SelectedFeatureViewModel>();
         }
 

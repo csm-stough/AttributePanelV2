@@ -1,27 +1,34 @@
 ﻿using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
-using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AttributePanelV2.ViewModels
 {
     public class SelectedFeatureViewModel : PropertyChangedBase
     {
 
-        public FeatureLayer FeatureLayer { get; }
+        public FeatureLayerViewModel ParentLayer { get; }
         public long ObjectID { get; }
         public ObservableCollection<AttributeFieldViewModel> Attributes { get; }
+        public IEnumerable<AttributeFieldViewModel> DirtyAttributes => Attributes.Where(attr => attr.IsDirty);
+        public bool IsDirty => DirtyAttributes.Any();
 
-        public SelectedFeatureViewModel(FeatureLayer featureLayer, long objectID)
+        public SelectedFeatureViewModel(FeatureLayerViewModel parentLayer, long objectID)
         {
-            FeatureLayer = featureLayer;
+            ParentLayer = parentLayer;
             ObjectID = objectID;
             Attributes = new ObservableCollection<AttributeFieldViewModel>();
         }
 
+        public void CommitChanges()
+        {
+            foreach(var attribute in DirtyAttributes)
+            {
+                attribute.Commit();
+            }
+        }
     }
 }

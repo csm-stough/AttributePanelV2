@@ -70,7 +70,7 @@
                 <!-- Selection browser -->
                 <TreeView 
                     Grid.Row="0" 
-                    ItemsSource="{Binding FeatureClasses}"
+                    ItemsSource="{Binding FeatureLayers}"
                     SelectedItemChanged="TreeView_SelectedItemChanged">
                     <TreeView.Resources>
                         <Style TargetType="TreeViewItem"
@@ -80,7 +80,7 @@
                         <HierarchicalDataTemplate
                             DataType="{x:Type vm:FeatureLayerViewModel}"
                             ItemsSource="{Binding Features}">
-                            <TextBlock Text="{Binding FeatureLayer.Name}" />
+                            <TextBlock Text="{Binding Layer.Name}" />
                         </HierarchicalDataTemplate>
                         <DataTemplate
                             DataType="{x:Type vm:SelectedFeatureViewModel}">
@@ -95,6 +95,15 @@
                         ItemsSource="{Binding SelectedItem.Attributes}"
                         ItemTemplateSelector="{StaticResource AttributeTemplateSelector}" />
                 </ScrollViewer>
+                
+                <!-- Apply Button -->
+                <Button
+                    Grid.Row="2"
+                    Content="Apply"
+                    Command="{Binding ApplyCommand}"
+                    Margin="5"
+                    Padding="10,4"
+                    HorizontalAlignment="Right" />
             </Grid>
         </Grid>
     </Grid>

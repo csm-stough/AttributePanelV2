@@ -31,7 +31,7 @@ namespace AttributePanelV2.ViewModels
         public string FieldName { get; }
         public string Alias { get; }
         public object _currentValue;
-        public object OriginalValue { get; }
+        public object OriginalValue { get; private set; }
         public object CurrentValue
         {
             get => _currentValue;
@@ -68,6 +68,12 @@ namespace AttributePanelV2.ViewModels
         public ArcGIS.Core.Data.Domain CurrentDomain { get; }
         public SortedList<object, string> DomainValues { get; }
         public bool IsCodedValue { get; }
+        public void Commit()
+        {
+            OriginalValue = CurrentValue;
+            IsDirty = false;
+
+        }
 
         //private new void PropertyChanged(object sender, PropertyChangedEventArgs args)
         //{
