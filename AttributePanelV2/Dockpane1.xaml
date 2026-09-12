@@ -22,32 +22,49 @@
                     StringTemplate="{StaticResource StringAttributeTemplate}"
                     CodedValueTemplate="{StaticResource CodedValueAttributeTemplate}"
                     DoubleTemplate="{StaticResource DoubleAttributeTemplate}"
+                    SingleTemplate="{StaticResource SingleAttributeTemplate}"
                     IntegerTemplate="{StaticResource IntegerAttributeTemplate}"
                     SmallIntegerTemplate="{StaticResource SmallIntegerAttributeTemplate}"
                     BigIntegerTemplate="{StaticResource BigIntegerAttributeTemplate}"
+                    DateTemplate="{StaticResource DateAttributeTemplate}"
                     OIDTemplate="{StaticResource OIDAttributeTemplate}"
                     GeometryTemplate="{StaticResource GeometryAttributeTemplate}"
-                    GUIDTemplate="{StaticResource GUIDAttributeTemplate}"/>
+                    GUIDTemplate="{StaticResource GUIDAttributeTemplate}"
+                    GlobalIDTemplate="{StaticResource GlobalIDAttributeTemplate}"/>
+
+            <!-- Tree view right-click menu. Shared by both node types (a FeatureLayerViewModel
+                 layer node and a SelectedFeatureViewModel feature node under it) since both
+                 expose the same four command names on a layer node these act on every
+                 feature currently loaded under it, on a feature node just that one feature.
+                 MenuItem commands reach the node's own DataContext via PlacementTarget, since a
+                 ContextMenu is a separate popup and doesn't inherit DataContext the way normal
+                 visual-tree children do. -->
+            <ContextMenu x:Key="TreeNodeContextMenu">
+                <MenuItem Header="Unselect"
+                          Command="{Binding PlacementTarget.DataContext.UnselectCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <MenuItem Header="Only Select This"
+                          Command="{Binding PlacementTarget.DataContext.SelectOnlyThisCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <MenuItem Header="Zoom To"
+                          Command="{Binding PlacementTarget.DataContext.ZoomToCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                <Separator/>
+                <MenuItem Header="Delete"
+                          Command="{Binding PlacementTarget.DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <!-- 1. The top DockPanel height -->
             <RowDefinition Height="Auto"/>
-            <!-- 2. The main available area for the rest of your UI -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <DockPanel Grid.Row="0" LastChildFill="true" KeyboardNavigation.TabNavigation="Local" Height="30">
         </DockPanel>
 
-        <!-- FIXED: Assigned this Grid to Grid.Row="1" so it uses the remaining window space -->
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
-                <!-- 1. DockPane Header height -->
                 <RowDefinition Height="Auto"/>
-                <!-- 2. The rest of the workspace height -->
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -56,15 +73,17 @@
                        LastChildFill="true"
                        KeyboardNavigation.TabNavigation="Local"
                        Height="30">
+                <TextBlock Text="{Binding SelectionSummary}"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"
+                           FontWeight="Bold"/>
             </DockPanel>
 
-            <!-- FIXED: Assigned this Grid to Grid.Row="1" so it splits the remaining space perfectly -->
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
-                    <!-- TreeView gets 50% of remaining space -->
                     <RowDefinition Height="*"/>
-                    <!-- Attribute editor gets 50% of remaining space -->
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <!-- Selection browser -->
@@ -80,11 +99,13 @@
                         <HierarchicalDataTemplate
                             DataType="{x:Type vm:FeatureLayerViewModel}"
                             ItemsSource="{Binding Features}">
-                            <TextBlock Text="{Binding Layer.Name}" />
+                            <TextBlock Text="{Binding Layer.Name}"
+                                       ContextMenu="{StaticResource TreeNodeContextMenu}" />
                         </HierarchicalDataTemplate>
                         <DataTemplate
                             DataType="{x:Type vm:SelectedFeatureViewModel}">
-                            <TextBlock Text="{Binding}" />
+                            <TextBlock Text="{Binding DisplayName}"
+                                       ContextMenu="{StaticResource TreeNodeContextMenu}" />
                         </DataTemplate>
                     </TreeView.Resources>
                 </TreeView>
@@ -96,14 +117,30 @@
                         ItemTemplateSelector="{StaticResource AttributeTemplateSelector}" />
                 </ScrollViewer>
                 
-                <!-- Apply Button -->
-                <Button
+                <!-- Auto Apply toggle + Apply Button -->
+                <StackPanel
                     Grid.Row="2"
-                    Content="Apply"
-                    Command="{Binding ApplyCommand}"
-                    Margin="5"
-                    Padding="10,4"
-                    HorizontalAlignment="Right" />
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,0,10">
+                    <CheckBox
+                        Content="Auto Apply"
+                        IsChecked="{Binding IsAutoApplyEnabled}"
+                        VerticalAlignment="Center"
+                        Margin="0,0,10,0" />
+                    <Button
+                        Content="Apply"
+                        Command="{Binding ApplyCommand}"
+                        Width="80"
+                        Height="25" />
+                    <Button
+                        Content="Discard"
+                        Command="{Binding DiscardCommand}"
+                        Width="80"
+                        Height="25"
+                        Margin="10,0,0,0" />
+                </StackPanel>
             </Grid>
         </Grid>
     </Grid>

@@ -7,10 +7,12 @@
 	<!-- Attribute Type Converters -->
 	<converters:DomainValueConverter x:Key="DomainValueConverter"/>
 	<converters:DoubleValueConverter x:Key="DoubleValueConverter"/>
+	<converters:SingleValueConverter x:Key="SingleValueConverter"/>
 	<converters:IntegerValueConverter x:Key="IntegerValueConverter"/>
 	<converters:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
 	<converters:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
-	
+	<converters:GeometryThumbnailConverter x:Key="GeometryThumbnailConverter"/>
+
 	<DataTemplate x:Key="StringAttributeTemplate">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -44,7 +46,7 @@
             <!-- Attribute Value -->
             <TextBox
                 Grid.Column="2"
-                Text="{Binding CurrentValue, Mode=TwoWay}"
+                Text="{Binding CurrentValue, Mode=TwoWay, TargetNullValue=&lt;Null&gt;}"
                 MaxLength="{Binding Length}"
                 IsEnabled="{Binding IsEditable}"
             />
@@ -124,7 +126,7 @@
             <!-- Attribute Value -->
             <TextBox
                 Grid.Column="2"
-                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}}"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource DoubleValueConverter}, TargetNullValue=&lt;Null&gt;}"
                 IsEnabled="{Binding IsEditable}"
             />
         </Grid>
@@ -162,7 +164,7 @@
             <!-- Attribute Value -->
             <TextBox
                 Grid.Column="2"
-                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource IntegerValueConverter}}"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource IntegerValueConverter}, TargetNullValue=&lt;Null&gt;}"
                 IsEnabled="{Binding IsEditable}"
             />
         </Grid>
@@ -200,7 +202,7 @@
             <!-- Attribute Value -->
             <TextBox
                 Grid.Column="2"
-                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource SmallIntegerValueConverter}}"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource SmallIntegerValueConverter}, TargetNullValue=&lt;Null&gt;}"
                 IsEnabled="{Binding IsEditable}"
             />
         </Grid>
@@ -238,7 +240,7 @@
             <!-- Attribute Value -->
             <TextBox
                 Grid.Column="2"
-                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource BigIntegerValueConverter}}"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource BigIntegerValueConverter}, TargetNullValue=&lt;Null&gt;}"
                 IsEnabled="{Binding IsEditable}"
             />
         </Grid>
@@ -276,7 +278,7 @@
             <!-- Attribute Value -->
             <TextBlock
                 Grid.Column="2"
-                Text="{Binding CurrentValue}"
+                Text="{Binding CurrentValue, TargetNullValue=&lt;Null&gt;}"
             />
         </Grid>
     </DataTemplate>
@@ -310,11 +312,47 @@
                 Grid.Column="1"
                 Text="{Binding Alias}"
                 VerticalAlignment="Center"/>
-            <!-- Attribute Value -->
-            <TextBlock
+            <!-- Attribute Value: a small schematic sketch of the feature's actual shape (real
+                 vertices, not to map scale/rotation) rather than raw coordinate text. Hovering
+                 it pops up a larger version of the same drawing via the Border's ToolTip. -->
+            <Border
                 Grid.Column="2"
-                Text="{Binding CurrentValue}"
-            />
+                Width="36"
+                Height="36"
+                HorizontalAlignment="Left"
+                BorderBrush="#FF808080"
+                BorderThickness="1"
+                Background="Transparent">
+                <Border.ToolTip>
+                    <ToolTip>
+                        <Border Width="200" Height="200" Padding="6">
+                            <Path
+                                Data="{Binding PlacementTarget.DataContext.CurrentValue, RelativeSource={RelativeSource AncestorType=ToolTip}, Converter={StaticResource GeometryThumbnailConverter}}"
+                                Stretch="Uniform"
+                                Fill="#331B75D6"
+                                Stroke="#FF1B75D6"
+                                StrokeThickness="1.2"
+                                RenderTransformOrigin="0.5,0.5">
+                                <Path.RenderTransform>
+                                    <ScaleTransform ScaleY="-1"/>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Border>
+                    </ToolTip>
+                </Border.ToolTip>
+                <Path
+                    Data="{Binding CurrentValue, Converter={StaticResource GeometryThumbnailConverter}}"
+                    Stretch="Uniform"
+                    Margin="3"
+                    Fill="#331B75D6"
+                    Stroke="#FF1B75D6"
+                    StrokeThickness="1.2"
+                    RenderTransformOrigin="0.5,0.5">
+                    <Path.RenderTransform>
+                        <ScaleTransform ScaleY="-1"/>
+                    </Path.RenderTransform>
+                </Path>
+            </Border>
         </Grid>
     </DataTemplate>
 
@@ -348,9 +386,141 @@
                 Text="{Binding Alias}"
                 VerticalAlignment="Center"/>
             <!-- Attribute Value -->
+            <!-- A plain GUID field (unlike GlobalID) is treated as a possible foreign key
+                 the "Go To" button asks Dockpane1ViewModel to treat this value as another
+                 feature's GlobalID and jump to it if a match exists anywhere in the map. Reaches
+                 up past this template's own DataContext (this attribute) to the Dockpane1View
+                 UserControl's DataContext (Dockpane1ViewModel), since resolving the reference
+                 needs the whole map, not just this one field. -->
+            <DockPanel Grid.Column="2">
+                <Button
+                    DockPanel.Dock="Right"
+                    Content="→"
+                    Width="24"
+                    Margin="4,0,0,0"
+                    ToolTip="Select the feature this GUID references"
+                    Command="{Binding DataContext.GoToReferenceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                    CommandParameter="{Binding CurrentValue}"
+                />
+                <TextBlock
+                    Text="{Binding CurrentValue, TargetNullValue=&lt;Null&gt;}"
+                />
+            </DockPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="GlobalIDAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <!-- GlobalIDs are system-managed and never user-editable, same as OID -->
             <TextBlock
                 Grid.Column="2"
-                Text="{Binding CurrentValue}"
+                Text="{Binding CurrentValue, TargetNullValue=&lt;Null&gt;}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="SingleAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <TextBox
+                Grid.Column="2"
+                Text="{Binding CurrentValue, Mode=TwoWay, Converter={StaticResource SingleValueConverter}, TargetNullValue=&lt;Null&gt;}"
+                IsEnabled="{Binding IsEditable}"
+            />
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="DateAttributeTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="16"/>
+                <ColumnDefinition Width="160"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!-- Dirty Indicator -->
+            <TextBlock
+                Grid.Column="0"
+                Text="●"
+                HorizontalAlignment="Center">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsDirty}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <!-- Attribute Name -->
+            <TextBlock
+                Grid.Column="1"
+                Text="{Binding Alias}"
+                VerticalAlignment="Center"/>
+            <!-- Attribute Value -->
+            <!-- CurrentValue holds a boxed DateTime for Date fields, which DatePicker.SelectedDate
+                 (a Nullable<DateTime>) accepts directly - no converter needed here. -->
+            <DatePicker
+                Grid.Column="2"
+                SelectedDate="{Binding CurrentValue, Mode=TwoWay}"
+                IsEnabled="{Binding IsEditable}"
             />
         </Grid>
     </DataTemplate>

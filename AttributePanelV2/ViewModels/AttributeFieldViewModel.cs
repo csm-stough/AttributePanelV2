@@ -6,11 +6,13 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ArcGIS.Core.Data;
 
 namespace AttributePanelV2.ViewModels
 {
-    public class AttributeFieldViewModel : PropertyChangedBase
+    // Implements IAttributeFieldViewModel so AttributeTemplateSelector and the shared
+    // DataTemplates in AttributeTemplates.xaml also work for BatchAttributeFieldViewModel
+    // (batch editing across every feature loaded for a layer) without any duplication.
+    public class AttributeFieldViewModel : PropertyChangedBase, IAttributeFieldViewModel
     {
 
         public AttributeFieldViewModel(Field field, object value)
@@ -30,7 +32,7 @@ namespace AttributePanelV2.ViewModels
 
         public string FieldName { get; }
         public string Alias { get; }
-        public object _currentValue;
+        private object _currentValue;
         public object OriginalValue { get; private set; }
         public object CurrentValue
         {
@@ -42,15 +44,22 @@ namespace AttributePanelV2.ViewModels
                     return;
                 }
                 _currentValue = value;
-                NotifyPropertyChanged();
+                // IsDirty must be updated BEFORE the CurrentValue change notification fires:
+                // Dockpane1ViewModel's auto-apply hook runs synchronously off that same
+                // notification (PropertyChanged is a plain synchronous event), and checks
+                // whether anything is dirty before applying. With NotifyPropertyChanged()
+                // called first, that check would run while this field's own IsDirty was
+                // still false -- so the very first edit to an otherwise-clean feature (the
+                // most common case) would silently fail to auto-apply every time.
                 IsDirty = !Equals(OriginalValue, _currentValue);
+                NotifyPropertyChanged();
             }
         }
         public FieldType FieldType { get; }
         public int Length { get; }
         public bool IsEditable { get; }
         public bool HasDomain { get; }
-        public bool _isDirty;
+        private bool _isDirty;
         public bool IsDirty
         {
             get => _isDirty;
@@ -75,24 +84,12 @@ namespace AttributePanelV2.ViewModels
 
         }
 
-        //private new void PropertyChanged(object sender, PropertyChangedEventArgs args)
-        //{
-        //    switch(args.PropertyName)
-        //    {
-        //        case "CurrentValue":
-        //            NotifyPropertyChanged(nameof(CurrentValue));
-        //            break;
-        //        case "IsDirty":
-        //            NotifyPropertyChanged(nameof(IsDirty));
-        //            break;
-        //        case "CurrentDomain":
-        //            NotifyPropertyChanged(nameof(CurrentDomain));
-        //            NotifyPropertyChanged(nameof(IsCodedValue));
-        //            break;
-        //        case "IsEditable":
-        //            NotifyPropertyChanged(nameof(IsEditable));
-        //            break;
-        //    }
-        //}
+        public void Discard()
+        {
+            // Routes through the CurrentValue setter (not a direct field write) so the usual
+            // equality/IsDirty/notification logic runs the same way an ordinary edit would --
+            // if CurrentValue already equals OriginalValue this is a no-op.
+            CurrentValue = OriginalValue;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,7 +9,8 @@ using System.Windows.Data;
 
 namespace AttributePanelV2.Converters
 {
-    public class SmallIntegerValueConverter : IValueConverter
+    // FieldType.Single (a "Float" field in Pro's UI) maps to System.Single at the row level.
+    public class SingleValueConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -20,7 +21,7 @@ namespace AttributePanelV2.Converters
                 // TextBox showing whatever it last displayed instead of a null indicator.
                 return null;
             }
-            if (value is short val)
+            if (value is float val)
             {
                 return val.ToString();
             }
@@ -36,13 +37,13 @@ namespace AttributePanelV2.Converters
         {
             if (value is string str)
             {
-                if (short.TryParse(str, NumberStyles.AllowLeadingSign, culture, out short result))
+                if (float.TryParse(str, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint, culture, out float result))
                 {
                     return result;
                 }
             }
 
-            // Not a valid short (or empty) -- tell the binding to leave CurrentValue alone
+            // Not a valid float (or empty) -- tell the binding to leave CurrentValue alone
             // rather than overwriting it with a throwaway value while the user is typing.
             return Binding.DoNothing;
         }
