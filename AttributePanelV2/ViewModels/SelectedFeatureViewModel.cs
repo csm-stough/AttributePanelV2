@@ -46,6 +46,26 @@ namespace AttributePanelV2.ViewModels
             }
         }
 
+        // Whether this feature is part of the pane's own Ctrl/Shift-click multi-select (a tree
+        // concept independent of the real map selection -- see Dockpane1ViewModel.ToggleChecked /
+        // ExtendCheckedRange). Bound to a background highlight on the row in Dockpane1.xaml so
+        // checked rows are visually distinguishable, since the native TreeView only ever
+        // highlights one row on its own.
+        private bool _isChecked;
+        public bool IsChecked
+        {
+            get => _isChecked;
+            set
+            {
+                if (_isChecked == value)
+                {
+                    return;
+                }
+                _isChecked = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public SelectedFeatureViewModel(FeatureLayerViewModel parentLayer, long objectID)
         {
             ParentLayer = parentLayer;

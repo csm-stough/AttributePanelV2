@@ -68,18 +68,9 @@ namespace AttributePanelV2.ViewModels
         {
             Attributes.Clear();
 
-            if (Features.Count == 0)
+            foreach (var row in BatchAttributeFieldViewModel.BuildRows(Features))
             {
-                return;
-            }
-
-            var byFieldName = Features
-                .SelectMany(feature => feature.Attributes)
-                .GroupBy(attribute => attribute.FieldName);
-
-            foreach (var group in byFieldName)
-            {
-                Attributes.Add(new BatchAttributeFieldViewModel(group.ToList()));
+                Attributes.Add(row);
             }
         }
     }

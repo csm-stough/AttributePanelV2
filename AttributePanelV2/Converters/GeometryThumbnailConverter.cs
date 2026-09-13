@@ -12,6 +12,7 @@ using WpfGeometry = System.Windows.Media.Geometry;
 using WpfLineSegment = System.Windows.Media.LineSegment;
 using ArcGIS.Core.Geometry;
 using System.Windows.Media;
+using AttributePanelV2.ViewModels;
 
 namespace AttributePanelV2.Converters
 {
@@ -26,11 +27,51 @@ namespace AttributePanelV2.Converters
     // inline box and the larger hover popup with no extra math here. The Path itself also
     // carries a ScaleTransform(ScaleY=-1) (not this converter's concern) to flip it right-side
     // up, since map Y increases upward while WPF Y increases downward.
+    //
+    // Bound to the whole row (an IAttributeFieldViewModel), not just CurrentValue -- a batch
+    // row's CurrentValue collapses to "<Varies>" the instant two selected features have
+    // different shapes, which for Geometry is effectively always. Binding the row itself lets
+    // this tell a BatchAttributeFieldViewModel apart from a single AttributeFieldViewModel and
+    // handle each appropriately (see BuildMerged vs BuildSingle below).
     public class GeometryThumbnailConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is not ArcGeometry geometry || geometry.IsEmpty)
+            return value switch
+            {
+                // Layer/batch-node selection: overlay every selected feature's actual shape
+                // into one combined sketch rather than showing nothing (the old CurrentValue
+                // binding effectively always resolved to "<Varies>" here, which isn't a
+                // Geometry and so drew an empty box).
+                BatchAttributeFieldViewModel batch => BuildMerged(
+                    batch.UnderlyingFields.Select(field => field.CurrentValue as ArcGeometry)),
+
+                // Single-feature selection -- same as before.
+                IAttributeFieldViewModel single => BuildSingle(single.CurrentValue as ArcGeometry),
+
+                _ => null,
+            };
+        }
+
+        private static WpfGeometry BuildMerged(IEnumerable<ArcGeometry> geometries)
+        {
+            var group = new GeometryGroup();
+
+            foreach (var geometry in geometries)
+            {
+                var sketch = BuildSingle(geometry);
+                if (sketch != null)
+                {
+                    group.Children.Add(sketch);
+                }
+            }
+
+            return group.Children.Count > 0 ? group : null;
+        }
+
+        private static WpfGeometry BuildSingle(ArcGeometry geometry)
+        {
+            if (geometry == null || geometry.IsEmpty)
             {
                 return null;
             }

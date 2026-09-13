@@ -19,7 +19,45 @@ namespace AttributePanelV2.ViewModels
     {
         public const string VariesPlaceholder = "<Varies>";
 
+        // CodedValueAttributeTemplate's ComboBox matches CurrentValue against DomainValues by
+        // Key (SelectedValuePath="Key") -- the plain VariesPlaceholder string never matches a
+        // real domain code, so the combo just shows blank instead of "<Varies>". This sentinel
+        // is a synthetic key added to this row's own copy of DomainValues (see below) so the
+        // combo has something to match and display against. Internal (not private) so
+        // VariesKeyToIsEnabledConverter can recognize it and grey the entry out in the dropdown
+        // -- it should be visible as the current selection but not user-selectable.
+        internal static readonly object VariesKey = new object();
+
+        // SortedList's default comparer calls the keys' own IComparable.CompareTo, which throws
+        // if VariesKey (a plain object) ever gets compared against a real domain code (e.g.
+        // short/int/string). Special-case it so it always sorts first without touching the
+        // real codes' comparison logic.
+        private sealed class VariesAwareComparer : IComparer<object>
+        {
+            public static readonly VariesAwareComparer Instance = new VariesAwareComparer();
+
+            public int Compare(object x, object y)
+            {
+                if (ReferenceEquals(x, VariesKey))
+                {
+                    return ReferenceEquals(y, VariesKey) ? 0 : -1;
+                }
+                if (ReferenceEquals(y, VariesKey))
+                {
+                    return 1;
+                }
+                return Comparer<object>.Default.Compare(x, y);
+            }
+        }
+
         private readonly IReadOnlyList<AttributeFieldViewModel> _fields;
+
+        // Exposes the per-feature fields this row wraps -- GeometryThumbnailConverter uses
+        // this to merge every selected feature's actual shape into one combined sketch for a
+        // batch/layer-node selection, rather than collapsing to CurrentValue's single
+        // shared-value-or-"<Varies>" view (which is the right behavior for every other field
+        // type, but for Geometry specifically just means "different every time").
+        public IReadOnlyList<AttributeFieldViewModel> UnderlyingFields => _fields;
 
         public BatchAttributeFieldViewModel(IReadOnlyList<AttributeFieldViewModel> fields)
         {
@@ -41,7 +79,21 @@ namespace AttributePanelV2.ViewModels
             HasDomain = first.HasDomain;
             CurrentDomain = first.CurrentDomain;
             IsCodedValue = first.IsCodedValue;
-            DomainValues = first.DomainValues;
+
+            if (IsCodedValue)
+            {
+                var domainValues = new SortedList<object, string>(VariesAwareComparer.Instance);
+                foreach (var pair in first.DomainValues)
+                {
+                    domainValues.Add(pair.Key, pair.Value);
+                }
+                domainValues.Add(VariesKey, VariesPlaceholder);
+                DomainValues = domainValues;
+            }
+            else
+            {
+                DomainValues = first.DomainValues;
+            }
 
             foreach (var field in _fields)
             {
@@ -73,7 +125,11 @@ namespace AttributePanelV2.ViewModels
             get
             {
                 var distinctValues = _fields.Select(field => field.CurrentValue).Distinct().ToList();
-                return distinctValues.Count == 1 ? distinctValues[0] : VariesPlaceholder;
+                if (distinctValues.Count == 1)
+                {
+                    return distinctValues[0];
+                }
+                return IsCodedValue ? VariesKey : (object)VariesPlaceholder;
             }
             set
             {
@@ -89,6 +145,28 @@ namespace AttributePanelV2.ViewModels
                     field.CurrentValue = value;
                 }
             }
+        }
+
+        // Groups every given feature's AttributeFieldViewModels by field name into one
+        // BatchAttributeFieldViewModel row per field -- the same grouping
+        // FeatureLayerViewModel.BuildBatchAttributes uses for "the whole layer", and
+        // Dockpane1ViewModel.RefreshActiveAttributes uses for an arbitrary Ctrl/Shift-checked
+        // subset of a layer's features. Pulled out here once so both callers share one
+        // implementation instead of duplicating the grouping logic.
+        public static IEnumerable<BatchAttributeFieldViewModel> BuildRows(IEnumerable<SelectedFeatureViewModel> features)
+        {
+            var featureList = features as IReadOnlyList<SelectedFeatureViewModel> ?? features.ToList();
+
+            if (featureList.Count == 0)
+            {
+                return Enumerable.Empty<BatchAttributeFieldViewModel>();
+            }
+
+            return featureList
+                .SelectMany(feature => feature.Attributes)
+                .GroupBy(attribute => attribute.FieldName)
+                .Select(group => new BatchAttributeFieldViewModel(group.ToList()))
+                .ToList();
         }
     }
 }

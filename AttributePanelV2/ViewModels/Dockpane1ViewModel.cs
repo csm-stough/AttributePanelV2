@@ -1,6 +1,7 @@
 ﻿
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.UtilityNetwork.Trace;
+using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Editing;
 using ArcGIS.Desktop.Editing.Attributes;
 using ArcGIS.Desktop.Editing.Controls;
@@ -36,19 +37,243 @@ namespace AttributePanelV2.ViewModels
             get => _selectedItem;
             set
             {
-                if(Equals(_selectedItem, value)) { return; }
+                // This setter is only ever driven by clicking a layer node now -- a click on an
+                // individual feature row (plain, Ctrl, or Shift) is fully intercepted in
+                // Dockpane1View's code-behind and goes straight through CheckedFeatures /
+                // SelectOnlyFeature below instead, so that a single clicked feature renders with
+                // exactly the same highlighted-background visual as a Ctrl/Shift multi-selected
+                // one (rather than the TreeView's own native selection color, which was the
+                // inconsistency Cody flagged). A plain layer click still always means "start
+                // fresh" -- clear any active Ctrl/Shift multi-select first, even if the
+                // newly-clicked item happens to already equal _selectedItem (e.g. after a run of
+                // Ctrl-clicks, which never touch SelectedItem at all, so it can be stale by the
+                // time a layer click comes in).
+                bool hadCheckedFeatures = CheckedFeatures.Count > 0;
+                if (hadCheckedFeatures)
+                {
+                    ClearCheckedFeatures();
+                    _rangeAnchor = null;
+                }
+
+                if (Equals(_selectedItem, value) && !hadCheckedFeatures)
+                {
+                    return;
+                }
+
                 _selectedItem = value;
                 NotifyPropertyChanged();
+                RefreshActiveAttributes();
+                UpdateHighlight();
             }
         }
 
-        public FeatureLayerViewModel CurrentFeatureLayer =>
-            SelectedItem switch
+        // The pane's own Ctrl/Shift-click multi-select of individual feature rows under one
+        // layer -- a tree concept independent of the real map selection, added because the
+        // default ArcGIS attribute pane supports it and the plain WPF TreeView underneath this
+        // one doesn't have any multi-select of its own to build on. Always scoped to a single
+        // layer: starting to check a feature under a different layer than whatever's already
+        // checked clears the old set first (same as clicking a different layer/feature node
+        // outright does via SelectedItem above), matching how batch editing is already scoped
+        // to one layer at a time.
+        public ObservableCollection<SelectedFeatureViewModel> CheckedFeatures { get; } = new ObservableCollection<SelectedFeatureViewModel>();
+
+        // Anchor for Shift-click range selection -- the last feature a Ctrl or Shift click
+        // touched. Deliberately not moved by ExtendCheckedRange itself, so repeated Shift-clicks
+        // keep extending from the same starting point, same as Explorer/ListBox range-select.
+        private SelectedFeatureViewModel _rangeAnchor;
+
+        // Plain click on a feature row: same "start fresh" semantics as clicking a layer node
+        // (see SelectedItem above), just scoped to one feature instead of the whole layer.
+        // Routing plain feature clicks through here -- rather than through SelectedItem, which
+        // a feature row's click handler no longer ever touches -- is what makes a single
+        // clicked feature visually identical to a Ctrl/Shift-picked one: both are just
+        // CheckedFeatures with one or more entries, rendered by the same IsChecked-triggered
+        // background in Dockpane1.xaml.
+        public void SelectOnlyFeature(SelectedFeatureViewModel feature)
+        {
+            ClearCheckedFeatures();
+            feature.IsChecked = true;
+            CheckedFeatures.Add(feature);
+            _rangeAnchor = feature;
+            OnCheckedFeaturesChanged();
+        }
+
+        // Ctrl-click: toggles just this one feature's checked state without touching any of the
+        // others.
+        public void ToggleChecked(SelectedFeatureViewModel feature)
+        {
+            if (CheckedFeatures.Count > 0 && CheckedFeatures[0].ParentLayer != feature.ParentLayer)
             {
-                FeatureLayerViewModel layer => layer,
-                SelectedFeatureViewModel feature => feature.ParentLayer,
-                _ => null
-            };
+                ClearCheckedFeatures();
+            }
+
+            if (feature.IsChecked)
+            {
+                feature.IsChecked = false;
+                CheckedFeatures.Remove(feature);
+            }
+            else
+            {
+                feature.IsChecked = true;
+                CheckedFeatures.Add(feature);
+            }
+
+            _rangeAnchor = feature;
+            OnCheckedFeaturesChanged();
+        }
+
+        // Shift-click: replaces the checked set with the contiguous range between the last
+        // anchor and this feature (inclusive), in the order Features already lists them.
+        public void ExtendCheckedRange(SelectedFeatureViewModel feature)
+        {
+            var anchor = _rangeAnchor;
+
+            if (anchor == null || anchor.ParentLayer != feature.ParentLayer)
+            {
+                // No usable anchor (nothing checked yet, or the last anchor was under a
+                // different layer) -- nothing sensible to range between, so just check this one
+                // feature and start fresh from here.
+                SelectOnlyFeature(feature);
+                return;
+            }
+
+            var siblings = feature.ParentLayer.Features;
+            int anchorIndex = siblings.IndexOf(anchor);
+            int targetIndex = siblings.IndexOf(feature);
+
+            if (anchorIndex < 0 || targetIndex < 0)
+            {
+                return;
+            }
+
+            int start = System.Math.Min(anchorIndex, targetIndex);
+            int end = System.Math.Max(anchorIndex, targetIndex);
+
+            ClearCheckedFeatures();
+            for (int i = start; i <= end; i++)
+            {
+                siblings[i].IsChecked = true;
+                CheckedFeatures.Add(siblings[i]);
+            }
+
+            OnCheckedFeaturesChanged();
+        }
+
+        private void ClearCheckedFeatures()
+        {
+            foreach (var feature in CheckedFeatures)
+            {
+                feature.IsChecked = false;
+            }
+            CheckedFeatures.Clear();
+        }
+
+        private void OnCheckedFeaturesChanged()
+        {
+            RefreshActiveAttributes();
+            UpdateHighlight();
+        }
+
+        // What the attribute editor (Dockpane1.xaml's ItemsControl) actually shows. A checked
+        // multi-select always wins when one is active, batching just those features exactly
+        // like a whole-layer selection already batches every feature loaded under it; otherwise
+        // this falls back to today's SelectedItem-based single-feature/whole-layer behavior.
+        public ObservableCollection<IAttributeFieldViewModel> ActiveAttributes { get; } = new ObservableCollection<IAttributeFieldViewModel>();
+
+        private void RefreshActiveAttributes()
+        {
+            ActiveAttributes.Clear();
+
+            IEnumerable<IAttributeFieldViewModel> source = CheckedFeatures.Count > 0
+                ? BatchAttributeFieldViewModel.BuildRows(CheckedFeatures)
+                : SelectedItem switch
+                {
+                    SelectedFeatureViewModel feature => feature.Attributes,
+                    FeatureLayerViewModel layer => layer.Attributes,
+                    _ => Enumerable.Empty<IAttributeFieldViewModel>()
+                };
+
+            foreach (var attribute in source)
+            {
+                ActiveAttributes.Add(attribute);
+            }
+        }
+
+        // Every map-overlay highlight currently on screen for whatever's currently active in
+        // this pane -- see FeatureHighlighter for why this is a separate graphic instead of a
+        // second selection color. A checked multi-select highlights exactly that set; otherwise
+        // a single feature node highlights just itself and a layer/batch node highlights every
+        // feature currently loaded under it (per Cody's ask that picking the layer node light
+        // up the whole selection rather than nothing); nothing selected clears the list.
+        private readonly List<System.IDisposable> _currentHighlights = new List<System.IDisposable>();
+
+        private void UpdateHighlight()
+        {
+            IEnumerable<Geometry> geometries = CheckedFeatures.Count > 0
+                ? CheckedFeatures.Select(GetGeometry)
+                : SelectedItem switch
+                {
+                    SelectedFeatureViewModel feature => new[] { GetGeometry(feature) },
+                    FeatureLayerViewModel layer => layer.Features.Select(GetGeometry),
+                    _ => Enumerable.Empty<Geometry>()
+                };
+
+            // Reads each feature's geometry straight off its already-loaded Geometry-type
+            // AttributeFieldViewModel -- no extra query needed.
+            var geometryList = geometries.Where(geometry => geometry != null).ToList();
+            var mapView = MapView.Active;
+
+            // Disposing the old overlays and building/adding the new ones are all ArcGIS.Core
+            // calls (CIM symbols, MapView.AddOverlay) -- they need to run on the MCT, same as
+            // every other ArcGIS.Core call in this file. Every caller of UpdateHighlight fires
+            // on the UI thread (a plain WPF binding, or the tree's click handlers), so doing
+            // this inline there throws ArcGIS.Core.CalledOnWrongThreadException. Not awaited:
+            // QueuedTask.Run calls queue up in order on the MCT, so a quick run of clicks still
+            // resolves in the order the user made them.
+            QueuedTask.Run(() =>
+            {
+                foreach (var highlight in _currentHighlights)
+                {
+                    highlight?.Dispose();
+                }
+                _currentHighlights.Clear();
+
+                if (mapView == null)
+                {
+                    return;
+                }
+
+                foreach (var geometry in geometryList)
+                {
+                    var highlight = FeatureHighlighter.Highlight(mapView, geometry);
+                    if (highlight != null)
+                    {
+                        _currentHighlights.Add(highlight);
+                    }
+                }
+            });
+        }
+
+        private static Geometry GetGeometry(SelectedFeatureViewModel feature)
+        {
+            return feature.Attributes
+                .FirstOrDefault(attribute => attribute.FieldType == FieldType.Geometry)?.CurrentValue as Geometry;
+        }
+
+        // A checked multi-select is always scoped to one layer (enforced by ToggleChecked /
+        // ExtendCheckedRange above), so its first entry's ParentLayer always resolves the whole
+        // set correctly -- this is what ApplyChanges/DiscardChanges walk DirtyFeatures from, so
+        // it has to keep working even when SelectedItem itself is stale (Ctrl/Shift clicks never
+        // touch SelectedItem).
+        public FeatureLayerViewModel CurrentFeatureLayer =>
+            CheckedFeatures.Count > 0
+                ? CheckedFeatures[0].ParentLayer
+                : SelectedItem switch
+                {
+                    FeatureLayerViewModel layer => layer,
+                    SelectedFeatureViewModel feature => feature.ParentLayer,
+                    _ => null
+                };
 
         // Toggle for the "Auto Apply" checkbox: when on, every attribute edit applies itself
         // immediately (via OnAttributeValueChanged below) instead of waiting for the Apply
@@ -74,6 +299,11 @@ namespace AttributePanelV2.ViewModels
         private async void OnSelectionChanged(MapSelectionChangedEventArgs args)
         {
             FeatureLayers.Clear();
+
+            // The real map selection just moved out from under whatever this pane had
+            // singled out (if anything) -- clear SelectedItem so the highlight overlay clears
+            // with it (via the setter above) rather than pointing at a now-stale feature.
+            SelectedItem = null;
 
             if (args.Selection.Count == 0)
             {

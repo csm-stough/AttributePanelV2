@@ -12,6 +12,7 @@
 	<converters:SmallIntegerValueConverter x:Key="SmallIntegerValueConverter"/>
 	<converters:BigIntegerValueConverter x:Key="BigIntegerValueConverter"/>
 	<converters:GeometryThumbnailConverter x:Key="GeometryThumbnailConverter"/>
+	<converters:VariesKeyToIsEnabledConverter x:Key="VariesKeyToIsEnabledConverter"/>
 
 	<DataTemplate x:Key="StringAttributeTemplate">
         <Grid>
@@ -85,12 +86,18 @@
             <!-- Attribute Value -->
             <ComboBox
                 Grid.Column="2"
-                SelectedValue="{Binding CurrentValue, Mode=TwoWay}" 
+                SelectedValue="{Binding CurrentValue, Mode=TwoWay}"
                 ItemsSource="{Binding DomainValues}"
                 DisplayMemberPath="Value"
                 SelectedValuePath="Key"
                 IsEnabled="{Binding IsEditable}"
-            />
+            >
+                <ComboBox.ItemContainerStyle>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="IsEnabled" Value="{Binding Key, Converter={StaticResource VariesKeyToIsEnabledConverter}}"/>
+                    </Style>
+                </ComboBox.ItemContainerStyle>
+            </ComboBox>
         </Grid>
     </DataTemplate>
 
@@ -327,7 +334,7 @@
                     <ToolTip>
                         <Border Width="200" Height="200" Padding="6">
                             <Path
-                                Data="{Binding PlacementTarget.DataContext.CurrentValue, RelativeSource={RelativeSource AncestorType=ToolTip}, Converter={StaticResource GeometryThumbnailConverter}}"
+                                Data="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ToolTip}, Converter={StaticResource GeometryThumbnailConverter}}"
                                 Stretch="Uniform"
                                 Fill="#331B75D6"
                                 Stroke="#FF1B75D6"
@@ -341,7 +348,7 @@
                     </ToolTip>
                 </Border.ToolTip>
                 <Path
-                    Data="{Binding CurrentValue, Converter={StaticResource GeometryThumbnailConverter}}"
+                    Data="{Binding Converter={StaticResource GeometryThumbnailConverter}}"
                     Stretch="Uniform"
                     Margin="3"
                     Fill="#331B75D6"

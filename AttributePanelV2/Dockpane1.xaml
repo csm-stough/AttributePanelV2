@@ -95,6 +95,11 @@
                         <Style TargetType="TreeViewItem"
                             BasedOn="{StaticResource {x:Type TreeViewItem}}">
                             <Setter Property="IsExpanded" Value="True"/>
+                            <!-- Stretch so the feature row's highlight Border below (and
+                                 whatever fills a layer row) can actually span the tree's
+                                 full width — without this a TreeViewItem only ever sizes
+                                 its content to the content's own natural width. -->
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         </Style>
                         <HierarchicalDataTemplate
                             DataType="{x:Type vm:FeatureLayerViewModel}"
@@ -104,16 +109,48 @@
                         </HierarchicalDataTemplate>
                         <DataTemplate
                             DataType="{x:Type vm:SelectedFeatureViewModel}">
-                            <TextBlock Text="{Binding DisplayName}"
-                                       ContextMenu="{StaticResource TreeNodeContextMenu}" />
+                            <!-- Every click here plain, Ctrl, or Shift is handled in
+                                 code-behind and marked Handled, so the TreeView's own native
+                                 single-selection visual never appears on a feature row. A plain
+                                 click selects just this row, Ctrl toggles it into/out of the
+                                 checked set, and Shift range-selects from the last anchor all
+                                 three just add/remove entries in CheckedFeatures, so a single
+                                 clicked feature and a Ctrl/Shift multi-selected one always render
+                                 identically via the same IsChecked-triggered background below. -->
+                            <!-- Border (not the TextBlock) carries the highlight and the
+                                 click handling, so both the selected-row color and the
+                                 clickable area span the tree's full width instead of just
+                                 the text — HorizontalAlignment="Stretch" here only takes
+                                 effect because the TreeViewItem style above now stretches
+                                 its content instead of sizing to content. -->
+                            <Border HorizontalAlignment="Stretch"
+                                    ContextMenu="{StaticResource TreeNodeContextMenu}"
+                                    PreviewMouseLeftButtonDown="FeatureRow_PreviewMouseLeftButtonDown"
+                                    Padding="2,0">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsChecked}" Value="True">
+                                                <!-- #801B75D6 = same blue as before, 50% alpha —
+                                                     see Round 12's changelog entry. -->
+                                                <Setter Property="Background" Value="#801B75D6"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock Text="{Binding DisplayName}"/>
+                            </Border>
                         </DataTemplate>
                     </TreeView.Resources>
                 </TreeView>
 
-                <!-- Attribute editor -->
+                <!-- Attribute editor. ActiveAttributes resolves to the pane's checked
+                     multi-select when one is active, otherwise falls back to SelectedItem's own
+                     attributes (single feature or whole-layer batch), same as before. -->
                 <ScrollViewer Grid.Row="1">
                     <ItemsControl
-                        ItemsSource="{Binding SelectedItem.Attributes}"
+                        ItemsSource="{Binding ActiveAttributes}"
                         ItemTemplateSelector="{StaticResource AttributeTemplateSelector}" />
                 </ScrollViewer>
                 
